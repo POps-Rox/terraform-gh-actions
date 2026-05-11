@@ -1,4 +1,5 @@
-FROM ghcr.io/pops-rox/tf-actions-base:latest
+# Pinned to digest for supply-chain integrity; bump via Dependabot or manual review
+FROM ghcr.io/pops-rox/tf-actions-base:latest@sha256:b3aa0f0371bc8bb3eb167d33e7946a2121a0cc41f33bc402373d6467eac7a4df
 
 ARG TARGETARCH
 
@@ -41,7 +42,10 @@ COPY tools/compact_plan.py /usr/local/bin/compact_plan
 COPY tools/format_tf_credentials.py /usr/local/bin/format_tf_credentials
 COPY tools/github_comment_react.py /usr/local/bin/github_comment_react
 
-RUN echo "StrictHostKeyChecking no" >> /etc/ssh/ssh_config \
+# Add github.com to known_hosts to allow SSH-based module sources without disabling host key checking
+RUN mkdir -p /root/.ssh && \
+    ssh-keyscan -t rsa,ecdsa,ed25519 github.com >> /root/.ssh/known_hosts && \
+    chmod 600 /root/.ssh/known_hosts \
  && echo "IdentityFile /.ssh/id_rsa" >> /etc/ssh/ssh_config \
  && mkdir -p /.ssh
 

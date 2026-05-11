@@ -10,7 +10,7 @@ function debug() {
     debug_cmd pwd
     debug_cmd ls -la
     debug_cmd ls -la "$HOME"
-    debug_cmd printenv
+    debug_cmd 'printenv | grep -v -E "^(TF_VAR_.*|ARM_.*|AZURE_.*|GITHUB_TOKEN|.*SECRET.*|.*PASSWORD.*|.*KEY.*|.*TOKEN.*)="'
     debug_file "$GITHUB_EVENT_PATH"
     echo
 }
@@ -52,6 +52,10 @@ function detect-tfmask() {
 }
 
 function execute_run_commands() {
+    # SECURITY: TERRAFORM_PRE_RUN executes arbitrary bash with full secret access.
+    # Only set this from trusted workflows where the value cannot be controlled by
+    # untrusted contributors. Never read this from PR-triggered workflows without
+    # branch protection rules. See SECURITY.md for guidance.
     if [[ -v TERRAFORM_PRE_RUN ]]; then
         start_group "Executing TERRAFORM_PRE_RUN"
 
